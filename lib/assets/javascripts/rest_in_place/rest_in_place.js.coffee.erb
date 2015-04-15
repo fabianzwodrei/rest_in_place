@@ -100,6 +100,12 @@ class RestInPlaceEditor
   # Name of the attribute on the object. Combined with the object name to build
   # query string parameters in the form `object[attribute]`, just as Rails
   # expects it.
+  # 
+  # **data-linestype / @linestype**
+  # Setting data-linestype to 'multiline' and data-formtype to 'textarea' invokes
+  # multiline support for texts in textareas.
+  # It uses <br> tags for displaying the value and \n for the value inside the 
+  # textarea
   initOptions : ->
     @$element.parents().each (index, parent) =>
       @url           = @url           || $(parent).attr("data-url")
@@ -118,8 +124,6 @@ class RestInPlaceEditor
     @attributeName = @$element.attr("data-attribute")   || @attributeName
     @placeholder   = @$element.attr("data-placeholder") || @placeholder || ''
     @linestype     = @$element.attr("data-linestype")   || @linestype   || "singleline"
-    console.log @$element.attr("data-linestype")
-    console.log @linestype
 
   # Overwrites formtype specific method implementations during initialization
   bindForm : ->

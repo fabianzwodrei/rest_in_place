@@ -231,14 +231,15 @@ RestInPlaceEditor.forms =
         </form>""")
 
       textarea =  @$element.find('textarea')
-      
       textarea.val(value)
       textarea.select()
-      # calculation of textarea height for multiline 
-      lineHeight = parseFloat(textarea.css('line-height')) 
-      numberOfLines = value.split(/\r*\n/).length + 1;
-      textareaPadding = 2*(parseInt(textarea.css('padding-top')))
-      textarea.css('height', (numberOfLines * lineHeight) + textareaPadding)
+
+      # calculation of textarea height for multiline
+      if @linestype == "multiline"
+        lineHeight = parseFloat(textarea.css('line-height')) 
+        numberOfLines = value.split(/\r*\n/).length + 1;
+        textareaPadding = parseInt(textarea.css('padding-top')) + parseInt(textarea.css('padding-bottom')) 
+        textarea.css('height', (numberOfLines * lineHeight) + textareaPadding)
 
       textarea.keyup (e) =>
         @abort() if e.keyCode == ESC_KEY

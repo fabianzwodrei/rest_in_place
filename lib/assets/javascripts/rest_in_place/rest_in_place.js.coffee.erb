@@ -107,6 +107,7 @@ class RestInPlaceEditor
       @objectName    = @objectName    || $(parent).attr("data-object")
       @attributeName = @attributeName || $(parent).attr("data-attribute")
       @placeholder   = @placeholder   || $(parent).attr("data-placeholder")
+      @linestype     = @linestype     || $(parent).attr("data-linestype")
 
     @$element.parents().each (index, parent) =>
       @objectName = @objectName || res[1] if res = parent.id.match(/^(\w+)_(\d+)$/i)
@@ -116,6 +117,9 @@ class RestInPlaceEditor
     @objectName    = @$element.attr("data-object")      || @objectName
     @attributeName = @$element.attr("data-attribute")   || @attributeName
     @placeholder   = @$element.attr("data-placeholder") || @placeholder || ''
+    @linestype     = @$element.attr("data-linestype")   || @linestype   || "singleline"
+    console.log @$element.attr("data-linestype")
+    console.log @linestype
 
   # Overwrites formtype specific method implementations during initialization
   bindForm : ->
@@ -154,13 +158,19 @@ class RestInPlaceEditor
     if $.trim(value).length < 1
       @$element.html(@placeholderHTML())
     else
-      @$element.text(value)
+      if @linestype == "multiline"
+        @$element.html(value.replace(/\r?\n|\r/g, "<br>"))
+      else
+        @$element.text(value)
 
   placeholderHTML : ->
     """<span class="rest-in-placeholder">#{@placeholder}</span>"""
 
   elementHTML: ->
-    value = @$element.text()
+    if @linestype == "multiline"
+      value = @$element.html().replace(/<br>/g,"\n")
+    else
+      value = @$element.text()
     value = '' if value  == @placeholderHTML()
     value
 
@@ -195,14 +205,16 @@ RestInPlaceEditor.forms =
       @$element.html("""<form action="javascript:void(0)" style="display:inline;">
         <input type="text" class="rest-in-place-#{@attributeName}" placeholder="#{@placeholder}">
         </form>""")
-      @$element.find('input').val(value)
-      @$element.find('input')[0].select()
+      input = @$element.find('input')
+      input.val(value)
+      input[0].select()
+      input.css('height', @$element.css('line-height'))
       @$element.find("form").submit =>
         @update()
         false
-      @$element.find("input").keyup (e) =>
+      input.keyup (e) =>
         @abort() if e.keyCode == ESC_KEY
-      @$element.find("input").blur => @abort()
+      input.blur => @abort()
 
     getValue : ->
       @$element.find("input").val()
@@ -213,11 +225,20 @@ RestInPlaceEditor.forms =
       @$element.html("""<form action="javascript:void(0)" style="display:inline;">
         <textarea class="rest-in-place-#{@attributeName}" placeholder="#{@placeholder}"></textarea>
         </form>""")
-      @$element.find('textarea').val(value)
-      @$element.find('textarea')[0].select()
-      @$element.find("textarea").keyup (e) =>
+
+      textarea =  @$element.find('textarea')
+      
+      textarea.val(value)
+      textarea.select()
+      # calculation of textarea height for multiline 
+      lineHeight = parseFloat(textarea.css('line-height')) 
+      numberOfLines = value.split(/\r*\n/).length + 1;
+      textareaPadding = 2*(parseInt(textarea.css('padding-top')))
+      textarea.css('height', (numberOfLines * lineHeight) + textareaPadding)
+
+      textarea.keyup (e) =>
         @abort() if e.keyCode == ESC_KEY
-      @$element.find("textarea").blur => @update()
+      textarea.blur => @update()
 
     getValue : ->
       @$element.find("textarea").val()
